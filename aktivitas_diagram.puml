@@ -1,5 +1,5 @@
 
-@startuml
+@startuml aktivitas
 title Aktivitásdiagram – Rendelés leadása és online fizetés
 
 |Vásárló|

@@ -1,5 +1,5 @@
 
-@startuml
+@startuml usecase
 title Használati eset diagram – Online Éttermi Rendelés
 
 left to right direction

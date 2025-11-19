@@ -1,5 +1,5 @@
 
-@startuml
+@startuml osztalydiagram
 title Osztálydiagram – Online Éttermi Rendelés és Futárkövetés
 
 skinparam classAttributeIconSize 0
@@ -30,7 +30,7 @@ package "Felhasználók és jogosultság" {
     +jarmuTipus: String
     +aktivSzallitasok(): List<Rendeles>
   }
-
+  
   enum FelhasznaloAllapot { Aktiv; Tiltott; Torolt }
 }
 
