@@ -1,0 +1,167 @@
+
+@startuml
+title Osztálydiagram – Online Éttermi Rendelés és Futárkövetés
+
+skinparam classAttributeIconSize 0
+
+package "Felhasználók és jogosultság" {
+  abstract class Felhasznalo {
+    +id: UUID
+    +nev: String
+    +email: String
+    -jelszoHash: String
+    +allapot: FelhasznaloAllapot
+    +regDatum: DateTime
+    +bejelentkezik(email, jelszo): bool
+    +kilep(): void
+  }
+
+  class Vasarlo extends Felhasznalo {
+    +alapertelmezettCim: Cim [0..1]
+    +kosar: Kosar
+    +aktivRendelesek(): List<Rendeles>
+  }
+
+  class EtteremAdmin extends Felhasznalo {
+    +etterem: Etterem
+  }
+
+  class Futar extends Felhasznalo {
+    +jarmuTipus: String
+    +aktivSzallitasok(): List<Rendeles>
+  }
+
+  enum FelhasznaloAllapot { Aktiv; Tiltott; Torolt }
+}
+
+package "Katalógus" {
+  class Etterem {
+    +id: UUID
+    +nev: String
+    +nyitvatartas: String
+    +minimumRendeles: Money
+    +aktiv: bool
+    +fogadRendelest(r: Rendeles): void
+  }
+
+  class Kategoria {
+    +id: UUID
+    +nev: String
+    +leiras: String
+  }
+
+  class Etel {
+    +id: UUID
+    +nev: String
+    +ar: Money
+    +allergenek: String
+    +elerheto: bool
+  }
+
+  Etterem "1" o-- "*" Kategoria
+  Kategoria "1" o-- "*" Etel
+}
+
+package "Rendelés" {
+  class Kosar {
+    +tetelHozzaad(e: Etel, db: int): void
+    +tetelTorol(e: Etel): void
+    +vegosszeg(): Money
+  }
+
+  class KosarTetel {
+    +mennyiseg: int
+    +egysegar: Money
+    +reszosszeg(): Money
+  }
+
+  class Rendeles {
+    +id: UUID
+    +rendelesSzam: String
+    +letrehozasIdeje: DateTime
+    +allapot: RendelesAllapot
+    +fizetesMod: FizetesMod
+    +fizetesAllapot: FizetesAllapot
+    +osszeg: Money
+    +lemondasIndok: String
+    +lemond(): bool
+    +allapotValtas(uj: RendelesAllapot): void
+  }
+
+  class SzallitasiCim {
+    +iranyitoszam: String
+    +varos: String
+    +utca: String
+    +hazszam: String
+  }
+
+  enum RendelesAllapot { FeldolgozasAlatt; KeszitesAlatt; Felveve; Uton; Kiszallitva; Lemondva; Sikertelen }
+  enum FizetesMod { Online; Kespenz }
+  enum FizetesAllapot { Folyamatban; Sikeres; Sikertelen }
+
+  Rendeles "*" o-- "*" RendelesTetel
+  Rendeles "1" o-- "1" SzallitasiCim
+  class RendelesTetel {
+    +mennyiseg: int
+    +egysegar: Money
+    +reszosszeg(): Money
+  }
+}
+
+package "Pénzügy" {
+  class FizetesiTranzakcio {
+    +id: UUID
+    +gatewayRef: String
+    +statusz: FizetesAllapot
+    +indit(osszeg: Money, mod: FizetesMod): void
+    +visszaigazol(): void
+  }
+
+  class Kupon {
+    +kod: String
+    +lejarat: Date
+    +minOsszeg: Money
+    +aktiv: bool
+    +ervenyes(r: Rendeles): bool
+    +kedvezmeny(r: Rendeles): Money
+  }
+}
+
+package "Közös" {
+  class Cim {
+    +iranyitoszam: String
+    +varos: String
+    +utca: String
+    +hazszam: String
+  }
+  class Money {
+    +osszeg: decimal
+    +penznem: String
+  }
+}
+
+' Kapcsolatok
+Vasarlo "1" o-- "1" Kosar
+Kosar "1" o-- "*" KosarTetel
+KosarTetel "*" --> "1" Etel
+RendelesTetel "*" --> "1" Etel
+Vasarlo "1" --> "*" Rendeles : lead
+Etterem "1" --> "*" Rendeles : feldolgoz
+EtteremAdmin "1" --> "1" Etterem
+Futar "*" --> "*" Rendeles : szallit
+Rendeles "0..1" --> "1" FizetesiTranzakcio : fizetes
+Rendeles "0..1" --> "0..1" Kupon : alkalmaz
+
+' Függőségek (UI/ablakok példaként)
+package "UI (ablakok)" {
+  class EtlapAblak
+  class KosarAblak
+  class RendelésOsszegzesAblak
+  class AdminRendelesKezelo
+}
+EtlapAblak ..> Etel : megjelenít
+KosarAblak ..> Kosar
+RendelésOsszegzesAblak ..> Rendeles
+AdminRendelesKezelo ..> Rendeles
+
+@enduml

@@ -1,0 +1,56 @@
+
+@startuml
+title Aktivitásdiagram – Rendelés leadása és online fizetés
+
+|Vásárló|
+start
+:Ételek böngészése;
+:Kosárba helyezés;
+:Szállítási cím megadása;
+
+|Rendszer|
+if (Kupon megadva?) then (igen)
+  :Kupon érvényesítése;
+  if (Kupon érvényes?) then (igen)
+    :Kedvezmény alkalmazása;
+  else (nem)
+    :Hibaüzenet (érvénytelen kupon);
+  endif
+endif
+
+:Végösszeg számítása;
+
+|Vásárló|
+:„Megrendelés és fizetés” gomb;
+
+|Rendszer|
+fork
+  :Rendelés létrehozása\n(Feldolgozás alatt);
+fork again
+  :Értesítés e‑mailben;
+end fork
+
+|Fizetési Szolgáltató|
+:Tranzakció indítása;
+if (Sikeres fizetés?) then (igen)
+  |Rendszer|
+  :Fizetés = SIKERES;\nRendelés = Feldolgozás alatt;
+  |Étterem|
+  :Rendelés fogadása;\nKészítés alatt;
+  |Futár|
+  :Rendelés felvétele;\nÚton;
+  |Vásárló|
+  :Követés megtekintése;
+  |Futár|
+  :Kiszállítva;
+  |Rendszer|
+  :Rendelés lezárása;
+  stop
+else (nem)
+  |Rendszer|
+  :Fizetés = SIKERTELEN;\nRendelés = Sikertelen;
+  |Vásárló|
+  :Hibaüzenet és újrapróbálás lehetősége;
+  stop
+endif
+@enduml

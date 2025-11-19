@@ -1,0 +1,50 @@
+
+@startuml
+title Használati eset diagram – Online Éttermi Rendelés
+
+left to right direction
+
+actor "Felhasználó" as User
+actor "Vásárló" as Customer extends User
+actor "Futár" as Courier
+actor "Éttermi Admin" as Admin
+actor "Fizetési Szolgáltató" as PSP
+
+rectangle System {
+  usecase "Regisztráció / Bejelentkezés" as UC_Login
+  usecase "Étlap böngészése" as UC_Browse
+  usecase "Kosár kezelése" as UC_Cart
+  usecase "Rendelés leadása" as UC_Place
+  usecase "Fizetés (online/készpénz)" as UC_Pay
+  usecase "Rendelés követése" as UC_Track
+  usecase "Rendelés lemondása" as UC_Cancel
+  usecase "Étlap és készlet kezelése" as UC_MenuAdmin
+  usecase "Rendelések kezelése" as UC_OrderAdmin
+  usecase "Szállítás felvétele és státuszfrissítés" as UC_Courier
+  usecase "Végösszeg számítása" as UC_Total
+  usecase "Kupon érvényesítés" as UC_Coupon
+}
+
+' Kapcsolatok
+Customer -- UC_Login
+Customer -- UC_Browse
+Customer -- UC_Cart
+Customer -- UC_Place
+Customer -- UC_Pay
+Customer -- UC_Track
+Customer -- UC_Cancel
+
+Admin -- UC_MenuAdmin
+Admin -- UC_OrderAdmin
+
+Courier -- UC_Courier
+
+UC_Place .> UC_Total : <<include>>
+UC_Place .> UC_Coupon : <<include>>
+UC_Pay .> PSP : <<include>>\nTranzakció indítás
+
+' Extendek (kivételes esetek)
+UC_Cancel .> UC_Track : <<extend>>\n(követés nézetből indítható)
+UC_Pay <. UC_Place : <<extend>>\n(Online fizetés esetén)
+
+@enduml
